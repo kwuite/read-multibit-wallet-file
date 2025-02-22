@@ -10,7 +10,9 @@
   "scripts": {
     "patch-release": "npm version patch && gulp build && npm publish && git push --follow-tags",
     "minor-release": "npm version minor && gulp build && npm publish && git push --follow-tags",
-    "major-release": "npm version major && gulp build && npm publish && git push --follow-tags"
+    "major-release": "npm version major && gulp build && npm publish && git push --follow-tags",
+    "build": "gulp build",
+    "dev": "npm run build && ./build/mbexport-rd wallet.dat"
   },
   "author": "David Deutsch (http://reverenddave.com)",
   "contributors": [
@@ -47,6 +49,7 @@
     "level-js": "^2.2.4",
     "proto2typescript": "^2.2.0",
     "through2": "^2.0.1",
+    "ts-node": "^10.9.2",
     "typescript": "^2.3.4",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0",

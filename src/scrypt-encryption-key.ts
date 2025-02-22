@@ -25,14 +25,9 @@ export class ScryptEncryptionKey {
   private _passwordBuffer: ByteBuffer;
   private get passwordBuffer(): ByteBuffer {
     if (!this._passwordBuffer) {
-      var bytes = [];
-
-      for (var i = 0; i < this.password.length; ++i) {
-        var charCode = this.password.charCodeAt(i);
-        bytes.push((charCode & 0xFF00) >> 8);
-        bytes.push(charCode & 0xFF);
-      }
-      this._passwordBuffer = ByteBuffer.wrap(new Uint8Array(bytes));
+      // Convert the password string to UTF-8 encoded bytes using Buffer
+      const bytes = Buffer.from(this.password, 'utf8');
+      this._passwordBuffer = ByteBuffer.wrap(bytes);
     }
     return this._passwordBuffer;
   }
@@ -46,7 +41,24 @@ export class ScryptEncryptionKey {
           pw, this.salt,
           Math.log2(this.n), this.r, this.derivedKeyLength,
           (hash: any) => {
-            resolve(ByteBuffer.wrap(hash));
+            console.log('Raw hash type:', Object.prototype.toString.call(hash));
+            console.log('Raw hash length:', hash.length);
+            console.log('Raw hash bytes:', Array.from(hash));
+            
+            const hashBuffer = Buffer.from(hash);
+            console.log('Buffer type:', Object.prototype.toString.call(hashBuffer));
+            console.log('Buffer length:', hashBuffer.length);
+            console.log('Buffer bytes:', Array.from(hashBuffer));
+            
+            if (hashBuffer.byteLength !== this.derivedKeyLength) {
+              reject(new Error(`Invalid hash length. Expected ${this.derivedKeyLength} but got ${hashBuffer.byteLength}`));
+              return;
+            }
+            
+            const wrappedBuffer = ByteBuffer.wrap(hashBuffer);
+            console.log('Final ByteBuffer length:', wrappedBuffer.capacity());
+            
+            resolve(wrappedBuffer);
           }
         );
       });

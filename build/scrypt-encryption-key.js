@@ -21,13 +21,8 @@ var ScryptEncryptionKey = (function () {
     Object.defineProperty(ScryptEncryptionKey.prototype, "passwordBuffer", {
         get: function () {
             if (!this._passwordBuffer) {
-                var bytes = [];
-                for (var i = 0; i < this.password.length; ++i) {
-                    var charCode = this.password.charCodeAt(i);
-                    bytes.push((charCode & 0xFF00) >> 8);
-                    bytes.push(charCode & 0xFF);
-                }
-                this._passwordBuffer = ByteBuffer.wrap(new Uint8Array(bytes));
+                var bytes = Buffer.from(this.password, 'utf8');
+                this._passwordBuffer = ByteBuffer.wrap(bytes);
             }
             return this._passwordBuffer;
         },
@@ -41,7 +36,20 @@ var ScryptEncryptionKey = (function () {
                 this._keyPromise = new Promise(function (resolve, reject) {
                     var pw = new Uint8Array(_this.passwordBuffer.toBuffer());
                     scrypt(pw, _this.salt, Math.log2(_this.n), _this.r, _this.derivedKeyLength, function (hash) {
-                        resolve(ByteBuffer.wrap(hash));
+                        console.log('Raw hash type:', Object.prototype.toString.call(hash));
+                        console.log('Raw hash length:', hash.length);
+                        console.log('Raw hash bytes:', Array.from(hash));
+                        var hashBuffer = Buffer.from(hash);
+                        console.log('Buffer type:', Object.prototype.toString.call(hashBuffer));
+                        console.log('Buffer length:', hashBuffer.length);
+                        console.log('Buffer bytes:', Array.from(hashBuffer));
+                        if (hashBuffer.byteLength !== _this.derivedKeyLength) {
+                            reject(new Error("Invalid hash length. Expected " + _this.derivedKeyLength + " but got " + hashBuffer.byteLength));
+                            return;
+                        }
+                        var wrappedBuffer = ByteBuffer.wrap(hashBuffer);
+                        console.log('Final ByteBuffer length:', wrappedBuffer.capacity());
+                        resolve(wrappedBuffer);
                     });
                 });
             }
